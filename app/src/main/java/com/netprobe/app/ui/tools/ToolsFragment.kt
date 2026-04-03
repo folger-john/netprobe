@@ -25,7 +25,7 @@ import java.io.InputStreamReader
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.URL
-import javax.net.ssl.HttpsURLConnection
+import java.net.HttpURLConnection
 
 class ToolsFragment : Fragment() {
 
@@ -56,6 +56,11 @@ class ToolsFragment : Fragment() {
     private fun setupPing() {
         binding.btnPing.setOnClickListener {
             val host = binding.editPingHost.text.toString().trim()
+            if (host.isBlank()) {
+                binding.editPingHost.error = getString(R.string.error_invalid_host)
+                binding.textPingResult.text = ""
+                return@setOnClickListener
+            }
             if (!PingUtil.isValidHost(host)) {
                 binding.editPingHost.error = getString(R.string.error_invalid_host)
                 return@setOnClickListener
@@ -151,32 +156,59 @@ class ToolsFragment : Fragment() {
 
     private suspend fun fetchRdap(query: String): String = withContext(Dispatchers.IO) {
         val isIp = query.matches(Regex("^\\d+\\.\\d+\\.\\d+\\.\\d+$"))
-        val url = if (isIp) {
+        var urlStr = if (isIp) {
             "https://rdap.org/ip/$query"
         } else {
             "https://rdap.org/domain/$query"
         }
 
-        val connection = URL(url).openConnection() as HttpsURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Accept", "application/json")
-        connection.connectTimeout = 10000
-        connection.readTimeout = 10000
+        // Follow redirects manually (RDAP redirects to registry-specific servers)
+        var maxRedirects = 5
+        while (maxRedirects > 0) {
+            val connection = URL(urlStr).openConnection() as java.net.HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.setRequestProperty("Accept", "application/rdap+json, application/json")
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.instanceFollowRedirects = false
 
-        try {
-            val responseCode = connection.responseCode
-            if (responseCode != 200) {
-                return@withContext "RDAP lookup failed (HTTP $responseCode)"
+            try {
+                val responseCode = connection.responseCode
+
+                if (responseCode in 301..308) {
+                    val location = connection.getHeaderField("Location")
+                    if (location.isNullOrBlank()) {
+                        return@withContext "RDAP redirect with no location"
+                    }
+                    urlStr = if (location.startsWith("http")) location else {
+                        val base = URL(urlStr)
+                        URL(base, location).toString()
+                    }
+                    maxRedirects--
+                    connection.disconnect()
+                    continue
+                }
+
+                if (responseCode != 200) {
+                    val errorStream = connection.errorStream
+                    val errorBody = errorStream?.bufferedReader()?.readText() ?: ""
+                    errorStream?.close()
+                    return@withContext "RDAP lookup failed (HTTP $responseCode)\n$errorBody".trim()
+                }
+
+                val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                val response = reader.readText()
+                reader.close()
+                connection.disconnect()
+
+                return@withContext formatRdapResponse(response, query)
+            } catch (e: Exception) {
+                connection.disconnect()
+                throw e
             }
-
-            val reader = BufferedReader(InputStreamReader(connection.inputStream))
-            val response = reader.readText()
-            reader.close()
-
-            formatRdapResponse(response, query)
-        } finally {
-            connection.disconnect()
         }
+
+        "Too many redirects"
     }
 
     private fun formatRdapResponse(json: String, query: String): String {

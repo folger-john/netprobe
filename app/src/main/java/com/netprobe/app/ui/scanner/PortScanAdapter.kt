@@ -32,23 +32,12 @@ class PortScanAdapter :
             binding.textPort.text = result.port.toString()
             binding.textService.text = result.serviceName
 
-            if (result.isOpen) {
-                binding.textStatus.text = "Open"
-                val tealColor = ContextCompat.getColor(binding.root.context, R.color.teal)
-                binding.textStatus.setTextColor(tealColor)
-                binding.textPort.setTextColor(tealColor)
-                binding.root.setBackgroundColor(
-                    ContextCompat.getColor(binding.root.context, R.color.surface0)
-                )
-            } else {
-                binding.textStatus.text = "Closed"
-                val surfaceColor = ContextCompat.getColor(binding.root.context, R.color.surface2)
-                binding.textStatus.setTextColor(surfaceColor)
-                binding.textPort.setTextColor(surfaceColor)
-                binding.root.setBackgroundColor(
-                    ContextCompat.getColor(binding.root.context, R.color.base)
-                )
-            }
+            val tealColor = ContextCompat.getColor(binding.root.context, R.color.teal)
+            binding.textStatus.text = "Open"
+            binding.textStatus.setTextColor(tealColor)
+            binding.textPort.setTextColor(tealColor)
+            binding.statusDot.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(tealColor)
         }
     }
 

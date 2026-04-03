@@ -60,30 +60,32 @@ class PortScannerFragment : Fragment() {
         binding.btnPresetCommon.setOnClickListener {
             binding.editStartPort.setText("")
             binding.editEndPort.setText("")
-            binding.editStartPort.hint = "Common ports"
-            binding.editEndPort.hint = ""
+            binding.tilStartPort.hint = "Common (${COMMON_PORTS.size} ports)"
+            binding.tilEndPort.hint = COMMON_PORTS.joinToString(", ")
             binding.editStartPort.tag = COMMON_PORTS
         }
 
         binding.btnPresetWeb.setOnClickListener {
             binding.editStartPort.setText("")
             binding.editEndPort.setText("")
-            binding.editStartPort.hint = "Web ports"
-            binding.editEndPort.hint = ""
+            binding.tilStartPort.hint = "Web (${WEB_PORTS.size} ports)"
+            binding.tilEndPort.hint = WEB_PORTS.joinToString(", ")
             binding.editStartPort.tag = WEB_PORTS
         }
 
         binding.btnPresetDatabase.setOnClickListener {
             binding.editStartPort.setText("")
             binding.editEndPort.setText("")
-            binding.editStartPort.hint = "DB ports"
-            binding.editEndPort.hint = ""
+            binding.tilStartPort.hint = "DB (${DATABASE_PORTS.size} ports)"
+            binding.tilEndPort.hint = DATABASE_PORTS.joinToString(", ")
             binding.editStartPort.tag = DATABASE_PORTS
         }
 
         binding.btnPresetAll.setOnClickListener {
             binding.editStartPort.setText("1")
             binding.editEndPort.setText("1024")
+            binding.tilStartPort.hint = getString(R.string.hint_start_port)
+            binding.tilEndPort.hint = getString(R.string.hint_end_port)
             binding.editStartPort.tag = null
         }
     }
@@ -95,6 +97,18 @@ class PortScannerFragment : Fragment() {
                 binding.editHost.error = getString(R.string.error_invalid_host)
                 return@setOnClickListener
             }
+
+            // Validate port range when not using presets
+            val presetPorts = binding.editStartPort.tag as? List<*>
+            if (presetPorts == null) {
+                val startPort = binding.editStartPort.text.toString().toIntOrNull()
+                val endPort = binding.editEndPort.text.toString().toIntOrNull()
+                if (startPort == null || endPort == null || startPort < 1 || endPort > 65535 || startPort > endPort) {
+                    binding.editStartPort.error = getString(R.string.error_invalid_port)
+                    return@setOnClickListener
+                }
+            }
+
             startScan(host)
         }
 
@@ -108,6 +122,7 @@ class PortScannerFragment : Fragment() {
         openResults.clear()
         scannedCount = 0
         adapter.submitList(emptyList())
+        binding.textSummary.visibility = View.GONE
 
         val presetPorts = binding.editStartPort.tag as? List<*>
         val startTime = System.currentTimeMillis()
@@ -140,11 +155,6 @@ class PortScannerFragment : Fragment() {
                 } else {
                     val startPort = binding.editStartPort.text.toString().toIntOrNull() ?: 1
                     val endPort = binding.editEndPort.text.toString().toIntOrNull() ?: 1024
-                    if (startPort < 1 || endPort > 65535 || startPort > endPort) {
-                        binding.editStartPort.error = getString(R.string.error_invalid_port)
-                        resetScanUi()
-                        return@launch
-                    }
                     val totalPorts = endPort - startPort + 1
                     val scanner = PortScanner(host, startPort, endPort)
                     scanner.scanConcurrent().collect { result ->
@@ -169,7 +179,8 @@ class PortScannerFragment : Fragment() {
                     R.string.status_complete, openCount, closedCount
                 )
                 binding.textSummary.visibility = View.VISIBLE
-                binding.textSummary.text = "$openCount open ports found in ${"%.1f".format(seconds)} seconds"
+                val portWord = if (openCount == 1) "port" else "ports"
+                binding.textSummary.text = "$openCount open $portWord found in ${"%.1f".format(seconds)}s"
 
                 saveScanResult(host, openCount, duration)
             } catch (e: Exception) {
@@ -207,10 +218,11 @@ class PortScannerFragment : Fragment() {
             }
         }.toString()
 
+        val portWord = if (openCount == 1) "port" else "ports"
         val scanResult = ScanResult(
             scanType = "port",
             target = host,
-            summary = "$openCount open ports found (${results.size} scanned)",
+            summary = "$openCount open $portWord found (${results.size} scanned)",
             details = detailsJson,
             duration = duration
         )

@@ -13,6 +13,7 @@ import com.netprobe.app.data.model.ScanResult
 import com.netprobe.app.databinding.FragmentNetworkScannerBinding
 import com.netprobe.app.scanner.NetworkDevice
 import com.netprobe.app.scanner.NetworkScanner
+import com.netprobe.app.util.NetworkUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -43,12 +44,22 @@ class NetworkScannerFragment : Fragment() {
         binding.recyclerDevices.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerDevices.adapter = adapter
 
-        val localIp = NetworkScanner.getLocalIpAddress() ?: "Unknown"
-        binding.textLocalIp.text = localIp
+        loadDeviceInfo()
 
         binding.btnScanNetwork.setOnClickListener {
             startNetworkScan()
         }
+    }
+
+    private fun loadDeviceInfo() {
+        val localIp = NetworkUtils.getDeviceIp(requireContext())
+        binding.textLocalIp.text = if (localIp == "0.0.0.0") "Unknown" else localIp
+
+        val subnet = NetworkUtils.getSubnetMask(requireContext())
+        binding.tvSubnet.text = subnet
+
+        val gateway = NetworkUtils.getGateway(requireContext())
+        binding.tvGateway.text = if (gateway == "0.0.0.0") "Unknown" else gateway
     }
 
     private fun startNetworkScan() {
@@ -71,7 +82,8 @@ class NetworkScannerFragment : Fragment() {
                 }
 
                 val duration = System.currentTimeMillis() - startTime
-                binding.textStatus.text = getString(R.string.status_network_complete, devices.size)
+                val deviceWord = if (devices.size == 1) "device" else "devices"
+                binding.textStatus.text = "Found ${devices.size} $deviceWord"
 
                 saveScanResult(duration)
             } catch (e: Exception) {
@@ -102,10 +114,11 @@ class NetworkScannerFragment : Fragment() {
             }
         }.toString()
 
+        val deviceWord = if (devices.size == 1) "device" else "devices"
         val scanResult = ScanResult(
             scanType = "network",
             target = "$subnet.0/24",
-            summary = "${devices.size} devices found",
+            summary = "${devices.size} $deviceWord found",
             details = detailsJson,
             duration = duration
         )
