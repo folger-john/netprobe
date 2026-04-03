@@ -1,0 +1,7 @@
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.netprobe.app.data.model.** { *; }
+-keep class * extends androidx.room.RoomDatabase
+-dontwarn org.bouncycastle.**
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**

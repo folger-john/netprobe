@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NetProbe</string>
+
+    <!-- Bottom Navigation -->
+    <string name="tab_scanner">Scanner</string>
+    <string name="tab_network">Network</string>
+    <string name="tab_tools">Tools</string>
+    <string name="tab_history">History</string>
+
+    <!-- Port Scanner -->
+    <string name="hint_target_host">Target host (IP or domain)</string>
+    <string name="hint_start_port">Start port</string>
+    <string name="hint_end_port">End port</string>
+    <string name="preset_common">Common</string>
+    <string name="preset_web">Web</string>
+    <string name="preset_database">Database</string>
+    <string name="preset_all">All</string>
+    <string name="btn_scan">Start Scan</string>
+    <string name="btn_stop_scan">Stop</string>
+    <string name="status_ready">Ready to scan</string>
+    <string name="status_scanning">Scanning %1$s\u2026 (%2$d/%3$d)</string>
+    <string name="status_complete">Scan complete \u2014 %1$d open, %2$d closed</string>
+    <string name="port_open">Open</string>
+    <string name="port_closed">Closed</string>
+    <string name="port_filtered">Filtered</string>
+
+    <!-- Network Scanner -->
+    <string name="your_device">Your Device</string>
+    <string name="label_ip_address">IP Address</string>
+    <string name="label_subnet">Subnet</string>
+    <string name="label_gateway">Gateway</string>
+    <string name="btn_scan_network">Scan Network</string>
+    <string name="status_discovering">Discovering devices\u2026 (%1$d found)</string>
+    <string name="status_network_complete">Found %1$d devices</string>
+    <string name="unknown_host">Unknown</string>
+
+    <!-- Tools -->
+    <string name="tool_ping">Ping</string>
+    <string name="tool_whois">Whois</string>
+    <string name="tool_device_info">Device Info</string>
+    <string name="hint_ping_host">Host or IP to ping</string>
+    <string name="hint_whois_domain">Domain to look up</string>
+    <string name="btn_ping">Ping</string>
+    <string name="btn_whois">Lookup</string>
+    <string name="label_device_ip">IP Address</string>
+    <string name="label_device_gateway">Gateway</string>
+    <string name="label_device_dns">DNS Server</string>
+    <string name="label_device_mac">MAC Address</string>
+    <string name="label_device_network_type">Network Type</string>
+    <string name="label_device_external_ip">External IP</string>
+
+    <!-- History -->
+    <string name="empty_history">No scan history yet</string>
+    <string name="clear_history">Clear History</string>
+    <string name="confirm_clear_history">Clear all scan history?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <!-- General -->
+    <string name="error_invalid_host">Please enter a valid host</string>
+    <string name="error_invalid_port">Please enter a valid port range</string>
+    <string name="error_no_network">No network connection</string>
+    <string name="duration_format">%1$d.%2$ds</string>
+</resources>

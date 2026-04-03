@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Catppuccin Mocha Palette -->
+    <color name="crust">#FF11111B</color>
+    <color name="mantle">#FF181825</color>
+    <color name="base">#FF1E1E2E</color>
+    <color name="surface0">#FF313244</color>
+    <color name="surface1">#FF45475A</color>
+    <color name="surface2">#FF585B70</color>
+    <color name="overlay0">#FF6C7086</color>
+    <color name="text">#FFCDD6F4</color>
+    <color name="subtext0">#FFA6ADC8</color>
+    <color name="blue">#FF89B4FA</color>
+    <color name="green">#FFA6E3A1</color>
+    <color name="red">#FFF38BA8</color>
+    <color name="yellow">#FFF9E2AF</color>
+    <color name="teal">#FF94E2D5</color>
+    <color name="mauve">#FFCBA6F7</color>
+    <color name="peach">#FFFAB387</color>
+    <color name="lavender">#FFB4BEFE</color>
+
+    <!-- Semantic Colors -->
+    <color name="colorPrimary">@color/blue</color>
+    <color name="colorPrimaryVariant">@color/lavender</color>
+    <color name="colorSecondary">@color/teal</color>
+    <color name="colorSecondaryVariant">@color/green</color>
+    <color name="colorError">@color/red</color>
+    <color name="colorOnPrimary">@color/crust</color>
+    <color name="colorOnSecondary">@color/crust</color>
+    <color name="colorOnError">@color/crust</color>
+    <color name="colorOnBackground">@color/text</color>
+    <color name="colorOnSurface">@color/text</color>
+    <color name="colorSurface">@color/surface0</color>
+
+    <!-- Status Colors -->
+    <color name="port_open">@color/green</color>
+    <color name="port_closed">@color/red</color>
+    <color name="port_filtered">@color/yellow</color>
+
+    <!-- Transparency variants -->
+    <color name="surface0_80">#CC313244</color>
+    <color name="overlay0_50">#806C7086</color>
+</resources>
