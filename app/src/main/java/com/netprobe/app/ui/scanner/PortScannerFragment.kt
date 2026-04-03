@@ -27,6 +27,8 @@ class PortScannerFragment : Fragment() {
     private lateinit var adapter: PortScanAdapter
     private var scanJob: Job? = null
     private val results = mutableListOf<PortResult>()
+    private val openResults = mutableListOf<PortResult>()
+    private var scannedCount = 0
 
     companion object {
         private val COMMON_PORTS = listOf(21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 3306, 3389, 5432, 8080, 8443)
@@ -103,6 +105,8 @@ class PortScannerFragment : Fragment() {
 
     private fun startScan(host: String) {
         results.clear()
+        openResults.clear()
+        scannedCount = 0
         adapter.submitList(emptyList())
 
         val presetPorts = binding.editStartPort.tag as? List<*>
@@ -122,10 +126,14 @@ class PortScannerFragment : Fragment() {
                     for (port in ports) {
                         val scanner = PortScanner(host, port, port)
                         scanner.scan().collect { result ->
+                            scannedCount++
                             results.add(result)
-                            adapter.submitList(results.toList())
+                            if (result.isOpen) {
+                                openResults.add(result)
+                                adapter.submitList(openResults.toList())
+                            }
                             binding.textStatus.text = getString(
-                                R.string.status_scanning, host, results.size, totalPorts
+                                R.string.status_scanning, host, scannedCount, totalPorts
                             )
                         }
                     }
@@ -140,10 +148,14 @@ class PortScannerFragment : Fragment() {
                     val totalPorts = endPort - startPort + 1
                     val scanner = PortScanner(host, startPort, endPort)
                     scanner.scanConcurrent().collect { result ->
+                        scannedCount++
                         results.add(result)
-                        adapter.submitList(results.toList())
+                        if (result.isOpen) {
+                            openResults.add(result)
+                            adapter.submitList(openResults.toList())
+                        }
                         binding.textStatus.text = getString(
-                            R.string.status_scanning, host, results.size, totalPorts
+                            R.string.status_scanning, host, scannedCount, totalPorts
                         )
                     }
                 }
