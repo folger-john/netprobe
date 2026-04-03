@@ -2,6 +2,9 @@
 -keepattributes *Annotation*
 -keep class com.netprobe.app.data.model.** { *; }
 -keep class * extends androidx.room.RoomDatabase
+-keep class com.netprobe.app.data.database.** { *; }
+-keep interface com.netprobe.app.data.database.ScanResultDao { *; }
+-keep class * implements androidx.room.RoomDatabase$Callback { *; }
 -dontwarn org.bouncycastle.**
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**

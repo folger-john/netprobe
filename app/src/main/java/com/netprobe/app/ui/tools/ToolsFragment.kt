@@ -117,11 +117,17 @@ class ToolsFragment : Fragment() {
         }
     }
 
+    private val RDAP_INPUT_REGEX = Regex("^[a-zA-Z0-9.:\\-]+$")
+
     private fun setupWhois() {
         binding.btnWhois.setOnClickListener {
             val domain = binding.editWhoisDomain.text.toString().trim()
             if (domain.isBlank()) {
                 binding.editWhoisDomain.error = "Enter a domain or IP"
+                return@setOnClickListener
+            }
+            if (!RDAP_INPUT_REGEX.matches(domain) || domain.length > 253) {
+                binding.editWhoisDomain.error = "Invalid domain or IP format"
                 return@setOnClickListener
             }
 

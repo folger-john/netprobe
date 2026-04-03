@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
 
 data class PingResult(
     val host: String,
@@ -86,7 +87,12 @@ class PingUtil {
                         output.appendLine(errorOutput)
                     }
 
-                    process.waitFor()
+                    val finished = process.waitFor(
+                        (count.toLong() * deadlineSeconds + 5) , TimeUnit.SECONDS
+                    )
+                    if (!finished) {
+                        process.destroyForcibly()
+                    }
 
                     val rawOutput = output.toString().trim()
                     parsePingOutput(host, rawOutput)
