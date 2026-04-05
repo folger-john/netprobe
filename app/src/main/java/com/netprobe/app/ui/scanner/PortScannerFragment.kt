@@ -132,7 +132,7 @@ class PortScannerFragment : Fragment() {
         binding.btnStop.visibility = View.VISIBLE
         binding.textStatus.text = getString(R.string.status_scanning, host, 0, 0)
 
-        scanJob = lifecycleScope.launch {
+        scanJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 if (presetPorts != null) {
                     @Suppress("UNCHECKED_CAST")
@@ -147,14 +147,14 @@ class PortScannerFragment : Fragment() {
                                 openResults.add(result)
                                 adapter.submitList(openResults.toList())
                             }
-                            binding.textStatus.text = getString(
+                            _binding?.textStatus?.text = getString(
                                 R.string.status_scanning, host, scannedCount, totalPorts
                             )
                         }
                     }
                 } else {
-                    val startPort = binding.editStartPort.text.toString().toIntOrNull() ?: 1
-                    val endPort = binding.editEndPort.text.toString().toIntOrNull() ?: 1024
+                    val startPort = _binding?.editStartPort?.text?.toString()?.toIntOrNull() ?: 1
+                    val endPort = _binding?.editEndPort?.text?.toString()?.toIntOrNull() ?: 1024
                     val totalPorts = endPort - startPort + 1
                     val scanner = PortScanner(host, startPort, endPort)
                     scanner.scanConcurrent().collect { result ->
@@ -164,7 +164,7 @@ class PortScannerFragment : Fragment() {
                             openResults.add(result)
                             adapter.submitList(openResults.toList())
                         }
-                        binding.textStatus.text = getString(
+                        _binding?.textStatus?.text = getString(
                             R.string.status_scanning, host, scannedCount, totalPorts
                         )
                     }
@@ -175,19 +175,19 @@ class PortScannerFragment : Fragment() {
                 val closedCount = results.size - openCount
                 val seconds = duration / 1000.0
 
-                binding.textStatus.text = getString(
-                    R.string.status_complete, openCount, closedCount
-                )
-                binding.textSummary.visibility = View.VISIBLE
-                val portWord = if (openCount == 1) "port" else "ports"
-                binding.textSummary.text = "$openCount open $portWord found in ${"%.1f".format(seconds)}s"
+                _binding?.let { b ->
+                    b.textStatus.text = getString(R.string.status_complete, openCount, closedCount)
+                    b.textSummary.visibility = View.VISIBLE
+                    val portWord = if (openCount == 1) "port" else "ports"
+                    b.textSummary.text = "$openCount open $portWord found in ${"%.1f".format(seconds)}s"
+                }
 
                 saveScanResult(host, openCount, duration)
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) {
-                    binding.textStatus.text = "Scan cancelled"
+                    _binding?.textStatus?.text = "Scan cancelled"
                 } else {
-                    binding.textStatus.text = "Error: ${e.message}"
+                    _binding?.textStatus?.text = "Error: ${e.message}"
                 }
             } finally {
                 resetScanUi()
@@ -201,6 +201,7 @@ class PortScannerFragment : Fragment() {
     }
 
     private fun resetScanUi() {
+        val binding = _binding ?: return
         binding.progressBar.visibility = View.GONE
         binding.btnScan.visibility = View.VISIBLE
         binding.btnStop.visibility = View.GONE

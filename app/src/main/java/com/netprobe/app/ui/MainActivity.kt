@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var adView: AdView? = null
+    private var activeFragment: Fragment? = null
 
     companion object {
         private const val TAG_PORT_SCANNER = "fragment_port_scanner"
@@ -35,48 +36,61 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        @Suppress("DEPRECATION")
         window.statusBarColor = Color.parseColor("#11111B")
 
-        setupBottomNavigation()
         setupAdBanner()
 
         if (savedInstanceState == null) {
-            switchFragment(PortScannerFragment(), TAG_PORT_SCANNER)
+            val portScanner = PortScannerFragment()
+            val networkScanner = NetworkScannerFragment()
+            val tools = ToolsFragment()
+            val history = HistoryFragment()
+
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragmentContainer, history, TAG_HISTORY).hide(history)
+                .add(R.id.fragmentContainer, tools, TAG_TOOLS).hide(tools)
+                .add(R.id.fragmentContainer, networkScanner, TAG_NETWORK_SCANNER).hide(networkScanner)
+                .add(R.id.fragmentContainer, portScanner, TAG_PORT_SCANNER)
+                .commit()
+            activeFragment = portScanner
+
             showDisclaimerIfFirstLaunch()
+        } else {
+            // Restore active fragment after config change
+            val fm = supportFragmentManager
+            activeFragment = fm.findFragmentByTag(TAG_PORT_SCANNER)
+                ?: fm.findFragmentByTag(TAG_NETWORK_SCANNER)
+                ?: fm.findFragmentByTag(TAG_TOOLS)
+                ?: fm.findFragmentByTag(TAG_HISTORY)
         }
+
+        setupBottomNavigation()
     }
 
     private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_scanner -> {
-                    switchFragment(PortScannerFragment(), TAG_PORT_SCANNER)
-                    true
-                }
-                R.id.nav_network -> {
-                    switchFragment(NetworkScannerFragment(), TAG_NETWORK_SCANNER)
-                    true
-                }
-                R.id.nav_tools -> {
-                    switchFragment(ToolsFragment(), TAG_TOOLS)
-                    true
-                }
-                R.id.nav_history -> {
-                    switchFragment(HistoryFragment(), TAG_HISTORY)
-                    true
-                }
-                else -> false
+            val tag = when (item.itemId) {
+                R.id.nav_scanner -> TAG_PORT_SCANNER
+                R.id.nav_network -> TAG_NETWORK_SCANNER
+                R.id.nav_tools -> TAG_TOOLS
+                R.id.nav_history -> TAG_HISTORY
+                else -> return@setOnItemSelectedListener false
             }
+            val fragment = supportFragmentManager.findFragmentByTag(tag)
+                ?: return@setOnItemSelectedListener false
+            showFragment(fragment)
+            true
         }
     }
 
-    private fun switchFragment(fragment: Fragment, tag: String) {
-        val existing = supportFragmentManager.findFragmentByTag(tag)
-        val target = existing ?: fragment
-
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, target, tag)
-            .commit()
+    private fun showFragment(fragment: Fragment) {
+        if (fragment == activeFragment) return
+        val tx = supportFragmentManager.beginTransaction()
+        activeFragment?.let { tx.hide(it) }
+        tx.show(fragment)
+        tx.commit()
+        activeFragment = fragment
     }
 
     private fun setupAdBanner() {

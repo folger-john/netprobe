@@ -25,7 +25,6 @@ import java.io.InputStreamReader
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.URL
-import java.net.HttpURLConnection
 
 class ToolsFragment : Fragment() {
 
@@ -320,12 +319,19 @@ class ToolsFragment : Fragment() {
 
     private fun getGateway(): String {
         return try {
+            // Try NetworkUtils.getGateway first (uses DHCP, always IPv4)
+            val dhcpGateway = com.netprobe.app.util.NetworkUtils.getGateway(requireContext())
+            if (dhcpGateway != "0.0.0.0" && dhcpGateway != "Unknown") {
+                return dhcpGateway
+            }
+            // Fall back to route table, prefer IPv4
             val cm = requireContext().getSystemService<ConnectivityManager>() ?: return "Unknown"
             val network = cm.activeNetwork ?: return "Unknown"
             val linkProperties: LinkProperties = cm.getLinkProperties(network) ?: return "Unknown"
-            val routes = linkProperties.routes
-            val gateway = routes.firstOrNull { it.isDefaultRoute }?.gateway
-            gateway?.hostAddress ?: "Unknown"
+            val routes = linkProperties.routes.filter { it.isDefaultRoute }
+            val ipv4Gateway = routes.firstOrNull { it.gateway is java.net.Inet4Address }?.gateway
+            val anyGateway = routes.firstOrNull()?.gateway
+            (ipv4Gateway ?: anyGateway)?.hostAddress ?: "Unknown"
         } catch (e: Exception) {
             "Unknown"
         }
